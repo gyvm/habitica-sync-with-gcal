@@ -1,86 +1,79 @@
 from __future__ import print_function
 import os.path
+
 from googleapiclient.discovery import build
-from google_auth_oauthlib.flow import InstalledAppFlow
-from google.auth.transport.requests import Request
-from google.oauth2.credentials import Credentials
+import google.auth
+import flask
+import requests
 
-from flask import Flask, request
+app = flask.Flask(__name__)
 
+SCOPES = ['https://www.googleapis.com/auth/calendar']
 
-app = Flask(__name__)
-app.config['JSON_AS_ASCII'] = False
+# 入力する
+CALENDAER_ID = ''
+HABITICA_USER_ID = ''
+HABITICA_API_TOKEN = ''
 
 @app.route('/taskactivity', methods=['POST'])
 def webhook():
-    
+    # Request contains data as shown at https://habitica.com/apidoc/#api-Webhook
     try:
-        # Request contains data as shown at https://habitica.com/apidoc/#api-Webhook
-        if request.is_json == True:
-            if request.json['webhookType'] == "taskActivity":
-                event_data = create_event_data()
-                creds = init_service()
-                service = build('calendar', 'v3', credentials=creds)
-                insert_gcal_event(service, event_data)
-                
-                return '', 200
+        task_title = get_task_title()
+        print(task_title)
+        event_data = create_event_data(task_title)
+        creds = google.auth.load_credentials_from_file('./credentials.json', SCOPES)[0]
+        service = build('calendar', 'v3', credentials=creds)
+        # service = googleapiclient.discovery.build('calendar', 'v3', credentials=gapi_creds)
+        result = service.events().insert(calendarId=CALENDAER_ID, body=event_data).execute()
+        print('OK:  ' + result['htmlLink'])
+        
+        return '', 200
     except Exception as e:
-        print(e)
+        print('NG:  ' + e)
         return '', 500
 
-def create_event_data():
-    task_title = request.json['task']['text']
-    task_id = 'task_id: ' + request.json['task']['id']
-    updated_date =request.json['task']['updatedAt']
+# タスク詳細をhabiticaへ問い合わせて取得する
+def get_task_title():
+    auth_headers = {'x-api-user': HABITICA_USER_ID, 'x-api-key': HABITICA_API_TOKEN}
+    event_id = flask.request.json['task']['id']
+    url = 'https://habitica.com/api/v3/tasks/' + event_id
+    
+    try:
+        r = requests.get(url, headers=auth_headers)
+        r = r.json()
+        return r['data']['text']
+    except Exception:
+        return "[ERROR] can't get the task title."
+
+# Google Calendarへ登録するイベント情報を生成する
+def create_event_data(task_title):
+    
+    datetime = flask.request.json['task']['updatedAt']
     
     event = {
         'summary': task_title,
-        'description': task_id,
+        'description': flask.request.json['task']['id'],
         'start': {
-            'dateTime': updated_date,
+            'dateTime': datetime,
             'timeZone': 'Asia/Tokyo',
         },
         'end': {
-            'dateTime': updated_date,
+            'dateTime': datetime,
             'timeZone': 'Asia/Tokyo',
         },
     }
     
-    if (request.json['task']['type']) == "habit":
-        task_title = "[habit] " + task_title
-    elif (request.json['task']['type']) == "daily":
-        task_title = "[habit] " + task_title
-    elif (request.json['task']['type']) == "todo":
-        task_title = "[habit] " + task_title
+    if (flask.request.json['task']['type']) == "habit":
+        event['summary'] = "habit completed: " + task_title
+    elif (flask.request.json['task']['type']) == "daily":
+        event['summary'] = "daily task completed: " + task_title
+    elif (flask.request.json['task']['type']) == "todo":
+        event['summary'] = "todo completed: " + task_title
     else:
-        task_title = "[error] タイトル未取得"
+        event['summary'] = "error: タイトル未取得"
 
-    print(event)
     return event
-
-def init_service():
-    # See "https://developers.google.com/docs/api/quickstart/python" for more information
-    SCOPES = ['https://www.googleapis.com/auth/calendar']
-
-    creds = None
-    if os.path.exists('token.json'):
-        creds = Credentials.from_authorized_user_file('token.json', SCOPES)
-    
-    if not creds or not creds.valid:
-        if creds and creds.expired and creds.refresh_token:
-            creds.refresh(Request())
-        else:
-            flow = InstalledAppFlow.from_client_secrets_file(
-                'credentials.json', SCOPES)
-            creds = flow.run_local_server(port=0)
-        with open('token.json', 'w') as token:
-            token.write(creds.to_json())
-
-    return creds
-
-def insert_gcal_event(service, event):
-    event = service.events().insert(calendarId='primary', body=event).execute()
-    print('Event created: %s' % (event.get('htmlLink')))
 
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0", port=int(os.environ.get('PORT', 8080)))
