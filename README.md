@@ -1,5 +1,5 @@
 # habitica-task-sync-with-gcal
-habitica-task-sync-with-gcalはhabiticaでタスク（習慣、日課、To Do）を完了した際に、Googleカレンダーにイベントを登録するためのスクリプトです。
+habitica-task-sync-with-gcalはhabiticaでタスク（習慣、日課、To Do）を完了した際に、Googleカレンダーにイベントを登録するためのスクリプトです。  
 Google Cloud Runで動作します。動作、起動方法は以下をご確認ください。
 
 ## 起動方法
@@ -7,7 +7,7 @@ Google Cloud Runで動作します。動作、起動方法は以下をご確認�
 1. Google Calendar APIを有効化
 1. GCPのサービスアカウントを作成
 1. Googleカレンダーへサービスアカウントを登録
-1. `main.py` の編集
+1. `main.py`の編集
 1. デプロイ
 
 ### 必要な情報
@@ -32,16 +32,16 @@ Google Cloud Runで動作します。動作、起動方法は以下をご確認�
     - 作成された対象の縦三点リーダー(メニュー)より「鍵を管理」を選択する
     - 「新しい鍵を作成」にてJSON型の秘密鍵を生成、ダウンロードする
 
-3. `habitica-task-sync-with-gcal/` 配下(`main.py`の存在するディレクトリ)にダウンロードした秘密鍵のファイルを`credentials.json`としてコピーする
+3. `habitica-task-sync-with-gcal/`配下(`main.py`の存在するディレクトリ)にダウンロードした秘密鍵のファイルを`credentials.json`としてコピーする
 
 ## 3. Googleカレンダーへサービスアカウントを登録する
 1. 利用するGoogleカレンダーの設定にて、「特定のユーザーとの共有」へ作成したサービスアカウントを追加する
   - サービスアカウントのメールの値を追加する
 
-## 4.  `main.py` の編集
+## 4.  `main.py`の編集
 1. 下記項目を入力する
-    - `CALENDAER_ID` は利用するGoogleカレンダーIDを設定
-    - `HABITICA_USER_ID` 、`HABITICA_API_TOKEN` はHabiticaの設定、APIページで確認可能
+    - `CALENDAER_ID`は利用するGoogleカレンダーIDを設定
+    - `HABITICA_USER_ID` 、`HABITICA_API_TOKEN`はHabiticaの設定、APIページで確認可能
 
     ``` 
     # 入力する
@@ -57,8 +57,8 @@ Google Cloud Runで動作します。動作、起動方法は以下をご確認�
     gcloud builds submit --tag=gcr.io/my-project/image
     ```
 
-    - `my-project` は使用するGCPのプロジェクト
-    - `image` は任意のイメージ名
+    - `my-project`は使用するGCPのプロジェクト
+    - `image`は任意のイメージ名
     - 参考
         - https://cloud.google.com/sdk/gcloud/reference/builds/submit
 
