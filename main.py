@@ -1,5 +1,6 @@
 from __future__ import print_function
 import os.path
+from datetime import datetime, timezone
 
 from googleapiclient.discovery import build
 import google.auth
@@ -32,7 +33,7 @@ def webhook():
 
         return '', 200
     except Exception as e:
-        print('NG:  ' + e)
+        print(e)
         return '', 500
 
 
@@ -54,17 +55,19 @@ def get_task_title():
 # Google Calendarへ登録するイベント情報を生成する
 def create_event_data(task_title):
 
-    datetime = flask.request.json['task']['updatedAt']
+    # updated_at = flask.request.json['task']['updatedAt']
+    updated_at = str(datetime.now(
+        timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"))
 
     event = {
         'summary': task_title,
         'description': flask.request.json['task']['id'],
         'start': {
-            'dateTime': datetime,
+            'dateTime': updated_at,
             'timeZone': 'Asia/Tokyo',
         },
         'end': {
-            'dateTime': datetime,
+            'dateTime': updated_at,
             'timeZone': 'Asia/Tokyo',
         },
     }
