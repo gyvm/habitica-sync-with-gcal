@@ -73,13 +73,13 @@ def create_event_data(task_title):
     }
 
     if (flask.request.json['task']['type']) == "habit":
-        event['summary'] = "habit completed: " + task_title
+        event['summary'] = task_title
     elif (flask.request.json['task']['type']) == "daily":
-        event['summary'] = "daily task completed: " + task_title
+        event['summary'] = task_title
     elif (flask.request.json['task']['type']) == "todo":
-        event['summary'] = "todo completed: " + task_title
+        event['summary'] = task_title
     else:
-        event['summary'] = "error: タイトル未取得"
+        event['summary'] = 'タイトル未取得'
 
     return event
 
