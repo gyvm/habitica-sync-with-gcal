@@ -1,4 +1,4 @@
-# habitica-task-sync-with-gcal
+# habitica-sync-with-gcal
 habitica-task-sync-with-gcalはhabiticaでタスク（習慣、日課、To Do）を完了した際に、Googleカレンダーにイベントを登録するためのスクリプトです。  
 Google Cloud Runで動作します。起動方法は以下をご確認ください。　
 
